@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+google-genai
+langchain-google-genai
+langchain-community
+langchain-qdrant
+langchain-neo4j
+neo4j
+pypdf
+python-dotenv
+tenacity
