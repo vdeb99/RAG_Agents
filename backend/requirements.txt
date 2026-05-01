@@ -10,3 +10,4 @@ neo4j
 pypdf
 python-dotenv
 tenacity
+python-docx
