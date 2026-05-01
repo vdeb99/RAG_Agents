@@ -10,15 +10,17 @@ from langchain_neo4j import Neo4jGraph
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as rest
 from dotenv import load_dotenv
+from config import app,rate_limiter, QDRANT_URL, COLLECTION_NAME
 
 load_dotenv()
 
 # --- Configurations ---
-rate_limiter = InMemoryRateLimiter(requests_per_second=0.1, max_bucket_size=1)
+# rate_limiter = InMemoryRateLimiter(requests_per_second=0.1, max_bucket_size=1)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-QDRANT_URL = "http://qdrant:6333"
-COLLECTION_NAME = "multimodal_collection_v2"
+# QDRANT_URL = "http://qdrant:6333"
+# COLLECTION_NAME = "multimodal_collection_v2"
 
+from config import app # Ensure app is imported
 llm = ChatGoogleGenerativeAI(model="models/gemini-2.5-flash-lite", rate_limiter=rate_limiter)
 embeddings = GoogleGenerativeAIEmbeddings(
     model="models/gemini-embedding-2-preview", 

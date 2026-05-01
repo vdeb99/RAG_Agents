@@ -6,13 +6,12 @@ from langchain_qdrant import QdrantVectorStore
 from langchain_neo4j import GraphCypherQAChain
 
 # Import everything from the services file
-from services import (
-    app, llm, graph, embeddings, QDRANT_URL, COLLECTION_NAME, 
-    get_multimodal_summary, update_knowledge_graph, run_vector_fallback, safe_graph_call
-)
+# from config import app, embeddings, QDRANT_URL, COLLECTION_NAME
+# from services import *
+import services
 
-app = FastAPI() # Re-initializing or using the imported app
-
+# app = FastAPI() # Re-initializing or using the imported app
+app=services.app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,17 +26,17 @@ class Query(BaseModel):
 async def handle_upload(file: UploadFile = File(...)):
     try:
         content = await file.read()
-        summary = await get_multimodal_summary(content, file.content_type)
+        summary = await services.get_multimodal_summary(content, file.content_type)
         
         await QdrantVectorStore.afrom_texts(
             texts=[summary],
-            embedding=embeddings,
-            url=QDRANT_URL,
-            collection_name=COLLECTION_NAME,
+            embedding=services.embeddings,
+            url=services.QDRANT_URL,
+            collection_name=services.COLLECTION_NAME,
             metadatas=[{"source": file.filename}]
         )
         
-        update_knowledge_graph(summary, file.filename)
+        services.update_knowledge_graph(summary, file.filename)
         return {"status": "success", "filename": file.filename}
     except Exception as e:
         traceback.print_exc()
@@ -46,18 +45,18 @@ async def handle_upload(file: UploadFile = File(...)):
 @app.post("/chat")
 async def handle_chat(payload: Query):
     try:
-        chain = GraphCypherQAChain.from_llm(llm, graph=graph, verbose=True, allow_dangerous_requests=True)
-        result = safe_graph_call(chain, payload.query)
+        chain = GraphCypherQAChain.from_llm(services.llm, graph=services.graph, verbose=True, allow_dangerous_requests=True)
+        result = services.safe_graph_call(chain, payload.query)
         answer = result.get("result")
 
         if not answer or "I don't know" in answer:
-            return await run_vector_fallback(payload.query)
+            return await services.run_vector_fallback(payload.query)
         return {"answer": answer}
 
     except Exception as e:
         if "429" in str(e):
             return {"answer": "API Busy. Retrying..."}
-        return await run_vector_fallback(payload.query)
+        return await services.run_vector_fallback(payload.query)
 
 if __name__ == "__main__":
     import uvicorn
