@@ -1,6 +1,8 @@
 import os
 import json
 import time
+import io
+from docx import Document as DocxDocument
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.messages import HumanMessage
@@ -15,12 +17,9 @@ from config import app,rate_limiter, QDRANT_URL, COLLECTION_NAME
 load_dotenv()
 
 # --- Configurations ---
-# rate_limiter = InMemoryRateLimiter(requests_per_second=0.1, max_bucket_size=1)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-# QDRANT_URL = "http://qdrant:6333"
-# COLLECTION_NAME = "multimodal_collection_v2"
 
-from config import app # Ensure app is imported
+from config import app 
 llm = ChatGoogleGenerativeAI(model="models/gemini-2.5-flash-lite", rate_limiter=rate_limiter)
 embeddings = GoogleGenerativeAIEmbeddings(
     model="models/gemini-embedding-2-preview", 
@@ -54,8 +53,17 @@ def safe_graph_call(chain, query):
     return chain.invoke(query)
 
 async def get_multimodal_summary(file_bytes: bytes, mime_type: str):
+    # Handle Word Documents (.docx)
+    if "officedocument.wordprocessingml.document" in mime_type:
+        doc = DocxDocument(io.BytesIO(file_bytes))
+        full_text = "\n".join([para.text for para in doc.paragraphs])
+        prompt = f"Analyze this text. Extract the most important entities and relationships for a knowledge graph. Be concise.\n\nText: {full_text}"
+        response = await llm.ainvoke(prompt)
+        return response.content
+
+    # Handle Images, PDFs, and Audio (Native Gemini Multimodal)
     message = HumanMessage(content=[
-        {"type": "text", "text": "Analyze this file. Extract entities and relationships. Be concise."},
+        {"type": "text", "text": "Analyze this file (if audio, listen carefully). Extract the most important entities and relationships for a knowledge graph. Be concise."},
         {"type": "media", "mime_type": mime_type, "data": file_bytes}
     ])
     response = await llm.ainvoke([message])

@@ -5,12 +5,8 @@ from pydantic import BaseModel
 from langchain_qdrant import QdrantVectorStore
 from langchain_neo4j import GraphCypherQAChain
 
-# Import everything from the services file
-# from config import app, embeddings, QDRANT_URL, COLLECTION_NAME
-# from services import *
 import services
 
-# app = FastAPI() # Re-initializing or using the imported app
 app=services.app
 app.add_middleware(
     CORSMiddleware,
