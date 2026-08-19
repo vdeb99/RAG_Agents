@@ -15,7 +15,7 @@ export default function App() {
     setLoading(true);
     setStatus('Indexing Modalities...');
     try {
-      await axios.post('http://localhost:8000/upload', formData);
+      await axios.post('http://localhost:8001/upload', formData);
       setStatus('Success: Vector & Graph Synced');
     } catch (e) {
       setStatus('Error Uploading');
@@ -30,7 +30,7 @@ export default function App() {
     setMessages(prev => [...prev, userMsg]);
     
     try {
-      const res = await axios.post('http://localhost:8000/chat', { query });
+      const res = await axios.post('http://localhost:8001/chat', { query });
       setMessages(prev => [...prev, { role: 'ai', text: res.data.answer }]);
     } catch (e) {
       setMessages(prev => [...prev, { role: 'ai', text: 'Error reaching backend.' }]);
