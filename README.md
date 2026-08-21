@@ -1,49 +1,35 @@
-# Literature Survey
+# Hybrid Graph + Vector RAG
 
-## Paper: *Adaptive-RAG: Learning to Adapt Retrieval-Augmented Large Language Models through Question Complexity*
+A hybrid Retrieval-Augmented Generation (RAG) system that combines semantic vector search with knowledge-graph retrieval to provide context-aware answers from uploaded documents.
 
-### Key Insights & Implementation
+## Tech Stack
 
-1. Recent research shows that traditional “static RAG” systems using fixed top-K retrieval are insufficient for handling complex enterprise-level queries and multi-hop reasoning tasks.
+- Frontend: React
+- Backend: FastAPI
+- LLM: Google Gemini
+- Vector Database: Qdrant
+- Graph Database: Neo4j
+- Framework: LangChain
+- Deployment: Docker Compose
 
-2. The paper introduces an **Adaptive Retrieval-Augmented Generation (Adaptive-RAG)** framework where the retrieval strategy dynamically changes based on query complexity instead of relying on a single retrieval pipeline.
+## How It Works
 
-3. Modern RAG systems combine:
-   - semantic vector retrieval,
-   - graph traversal,
-   - multi-hop reasoning,
-   - and adaptive context selection  
-   to improve factual grounding and retrieval precision.
+1. Documents are processed using Gemini to extract relevant information.
+2. Document representations are converted into embeddings and stored in Qdrant.
+3. Entities and relationships are extracted and stored in Neo4j as a knowledge graph.
+4. User queries are first processed using graph-based retrieval through Neo4j.
+5. If graph retrieval cannot provide a useful answer, the system falls back to semantic search using Qdrant.
+6. Gemini generates the final response using the retrieved context.
 
-4. The research emphasizes that lightweight queries should use efficient vector retrieval, while complex relationship-heavy queries should trigger deeper reasoning workflows and structured graph traversal.
+## Architecture
 
-5. **Application in Our Project:**  
-   Our implementation follows a hybrid retrieval architecture that intelligently combines:
-   - **Neo4j** for structured relationship-aware retrieval, and
-   - **Qdrant** for semantic similarity-based vector search.
-
-6. The system first attempts graph traversal for entity-connected queries and falls back to vector retrieval when direct graph relationships are unavailable.
-
-7. This adaptive retrieval workflow improves:
-   - contextual relevance,
-   - retrieval accuracy,
-   - scalability,
-   - and response grounding.
-
-8. The paper’s concept of dynamically selecting retrieval strategies directly influenced our modular retrieval orchestration pipeline and backend architecture.
-
-### Reference
-
-- Jeong et al., *Adaptive-RAG: Learning to Adapt Retrieval-Augmented Large Language Models through Question Complexity*  
-- arXiv: https://arxiv.org/abs/2403.14403
-
----
-
-# Conclusion
-
-The literature survey highlights the growing importance of adaptive and hybrid retrieval architectures in modern RAG systems. Inspired by these research directions, our project integrates:
-- graph-based retrieval using Neo4j,
-- semantic vector search using Qdrant,
-- adaptive retrieval routing,
-- and context-grounded response generation  
-to build a scalable and efficient Agentic RAG framework.
+```text
+React
+  |
+FastAPI
+  |
+  +---- Neo4j (Graph Retrieval)
+  |
+  +---- Qdrant (Vector Retrieval)
+  |
+Gemini (Generation)
